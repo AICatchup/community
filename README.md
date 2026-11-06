@@ -17,10 +17,13 @@ CodexやOpenAIを軸に、新機能、普段の使い方、作ったもの、試
 | 何のために集まり、何を大切にするか | [VISION.md](VISION.md) |
 | 迷ったときの判断、方針の変更、問題への対応 | [POLICY.md](POLICY.md) |
 | 発表・活用事例の投稿、PRの出し方 | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| 参加者のAIが投稿を手伝う手順 | [AGENT_GUIDE.md](AGENT_GUIDE.md) |
 
 継続する方針は、このリポジトリの `main` にコミットされた文書へ集約します。各回では方針のコピーを作らず、この正本を参照します。変更の理由と合意はPRでたどれます。
 
 ## 各回の発見を残す
+
+**[第2回の参加者の入口：知見・資料を送る](https://github.com/AICatchup/catchup-002/blob/main/PARTICIPATE.md)** · [各回の投稿先とファイル添付の案内](CONTRIBUTING.md)
 
 | 回 | 開催案内 | 発表・資料・活用事例 |
 | --- | --- | --- |
