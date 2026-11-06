@@ -1,0 +1,26 @@
+name: 共通方針への提案・相談
+description: ビジョン、運営方針、投稿の仕組みについて提案する
+title: "[提案] "
+labels: [proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        [ビジョン](https://github.com/AICatchup/community/blob/main/VISION.md) と [共通方針](https://github.com/AICatchup/community/blob/main/POLICY.md) を参照できます。このIssueは公開です。非公開の相談先はPOLICY.mdをご確認ください。
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 変えたいこと・相談したいこと
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 理由と、参加者や運営への影響
+      description: どんな体験につながるか、困っていることなどを教えてください。
+    validations:
+      required: true
+  - type: input
+    id: reference
+    attributes:
+      label: 関連する文書やIssueのURL
