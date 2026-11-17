@@ -176,20 +176,20 @@ main() {
       echo "  変更がないため PR は作成しません。"
     fi
   else
+    # ローカルにブランチを残さないよう、切り離した作業ツリーで編集して直接 push する。
     git -C "$ROOT" fetch -q origin main
     WORKTREE="$WORK/community"
-    git -C "$ROOT" worktree add -q -b "$BRANCH" "$WORKTREE" origin/main \
-      || die "ブランチ $BRANCH を作れませんでした。すでにある場合は削除してから再実行してください。"
+    git -C "$ROOT" worktree add -q --detach "$WORKTREE" origin/main
     patch_docs "$WORKTREE"
     if git -C "$WORKTREE" diff --quiet; then
       echo "  変更がないため PR は作成しません。"
-      git -C "$ROOT" worktree remove --force "$WORKTREE"
-      git -C "$ROOT" branch -q -D "$BRANCH"
+    elif git -C "$ROOT" ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+      echo "  ブランチ $BRANCH がすでにあるため PR は作成しません。作成済みの PR を確認してください。"
     else
       # shellcheck disable=SC2086
       git -C "$WORKTREE" add $DOCS
       git -C "$WORKTREE" commit -q -m "第${EVENT_NO}回の投稿先を案内に追加"
-      git -C "$WORKTREE" push -q -u origin "$BRANCH"
+      git -C "$WORKTREE" push -q origin "HEAD:refs/heads/$BRANCH"
       gh pr create --repo "$ORG/community" --base main --head "$BRANCH" \
         --title "第${EVENT_NO}回の投稿先を案内に追加" \
         --body "## 何を変えるか
