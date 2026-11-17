@@ -49,6 +49,17 @@ cleanup() {
   if [ -n "$WORK" ]; then rm -rf "$WORK"; fi
 }
 
+# 実行者が Org の Owner であることを確認する。Owner でない Org メンバーは、
+# リポジトリの作成だけ成功して設定の適用に失敗し、保護のないリポジトリを残すおそれがある。
+require_org_owner() {
+  local login role
+  login="$(gh api user --jq .login)"
+  role="$(gh api "orgs/$ORG/memberships/$login" --jq .role 2>/dev/null || true)"
+  if [ "$role" != "admin" ]; then
+    die "このスクリプトを実行できるのは $ORG の Owner だけです（現在のアカウント: $login）。内容の確認だけなら --dry-run を付けてください。"
+  fi
+}
+
 # コミットに使う作者情報を、このクローンの設定（なければグローバル設定）から取得する。
 # 一時リポジトリはこのクローンのローカル設定を引き継がないため、明示的に渡す。
 require_git_identity() {
@@ -161,10 +172,14 @@ main() {
   done
   gh auth status >/dev/null 2>&1 || die "GitHub CLI にログインしていません。gh auth login を実行してください。"
   [ -d "$TEMPLATE" ] || die "ひな形が見つかりません: $TEMPLATE"
-  gh api "orgs/$ORG/teams/$TEAM" --silent 2>/dev/null \
-    || die "運営チーム @$ORG/$TEAM が見つかりません。チームを作成するか、Owner 権限のあるアカウントで実行してください。"
-  # 何かを作成する前に確認し、作者情報がない環境で途中まで進まないようにする。
-  [ "$DRY_RUN" = 1 ] || require_git_identity
+  # 何かを作成する前に確認し、権限や設定が足りない環境で途中まで進まないようにする。
+  # --dry-run は何も変更しないので、Owner でなくても実行できる。
+  if [ "$DRY_RUN" = 0 ]; then
+    require_org_owner
+    require_git_identity
+    gh api "orgs/$ORG/teams/$TEAM" --silent 2>/dev/null \
+      || die "運営チーム @$ORG/$TEAM が見つかりません。先にチームを作成してください。"
+  fi
 
   WORK="$(mktemp -d)"
   trap cleanup EXIT

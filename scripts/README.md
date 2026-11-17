@@ -5,7 +5,7 @@
 ## 必要なもの
 
 - [GitHub CLI](https://cli.github.com/)（`gh auth login` 済み）と Git、bash。Windows では Git Bash で実行します。
-- AICatchup の Owner 権限。
+- AICatchup の Owner 権限。Owner 以外が実行すると、何も作成せずに止まります。`--dry-run` は誰でも実行できます。
 - このリポジトリのクローン。
 
 ## 使い方
