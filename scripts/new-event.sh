@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 新しい回の公開アーカイブ AICatchup/catchup-NNN を作り、既定の設定を適用する。
-# 使い方: scripts/new-event.sh [--dry-run] <回番号3桁> <開催日>
+# 使い方: scripts/new-event.sh [--dry-run] <回番号3桁> [開催日]
 # 詳細:   scripts/README.md
 set -euo pipefail
 
@@ -12,6 +12,7 @@ TEMPLATE="$ROOT/templates/event-repo"
 SETTINGS="$ROOT/settings"
 DOCS="README.md CONTRIBUTING.md AGENT_GUIDE.md"
 DRY_RUN=0
+DATE_KNOWN=1
 WORK=""
 WORKTREE=""
 GIT_NAME=""
@@ -32,8 +33,9 @@ run() {
 
 usage() {
   cat >&2 <<'EOF'
-使い方: scripts/new-event.sh [--dry-run] <回番号3桁> <開催日>
+使い方: scripts/new-event.sh [--dry-run] <回番号3桁> [開催日]
 例:     scripts/new-event.sh 004 "2027年3月10日（水）"
+        scripts/new-event.sh 004          （開催日が未定の場合）
 
   --dry-run  何も作成・変更せず、生成されるファイルと実行内容だけを表示します。
 EOF
@@ -120,9 +122,14 @@ patch_doc() {
 }
 
 patch_docs() {
-  local dir="$1"
+  local dir="$1" schedule
+  if [ "$DATE_KNOWN" = 1 ]; then
+    schedule="${EVENT_DATE} / 時間・参加登録先は後日案内"
+  else
+    schedule="開催日・時間・参加登録先は後日案内"
+  fi
   patch_doc "$dir" README.md \
-    "| 第${EVENT_NO}回 | ${EVENT_DATE} / 時間・参加登録先は後日案内 | [catchup-$EVENT_ID]($URL) |"
+    "| 第${EVENT_NO}回 | ${schedule} | [catchup-$EVENT_ID]($URL) |"
   patch_doc "$dir" CONTRIBUTING.md \
     "| 第${EVENT_NO}回 | [共有フォーム]($URL/issues/new?template=share.yml) |"
   patch_doc "$dir" AGENT_GUIDE.md ""
@@ -130,9 +137,12 @@ patch_docs() {
 
 main() {
   if [ "${1:-}" = "--dry-run" ]; then DRY_RUN=1; shift; fi
-  [ $# -eq 2 ] || usage
+  [ $# -ge 1 ] && [ $# -le 2 ] || usage
   EVENT_ID="$1"
-  EVENT_DATE="$2"
+  # 開催日は省略できる。省略時は「未定」として作り、決まってから各文書を更新する。
+  EVENT_DATE="${2:-}"
+  DATE_KNOWN=1
+  if [ -z "$EVENT_DATE" ]; then EVENT_DATE="未定"; DATE_KNOWN=0; fi
   [[ "$EVENT_ID" =~ ^[0-9]{3}$ ]] || die "回番号は 004 のように3桁の数字で指定してください。"
   case "$EVENT_DATE" in
     *[\&\\\|]*) die "開催日に & \\ | は使えません。" ;;
@@ -252,7 +262,7 @@ main() {
           --title "第${EVENT_NO}回の投稿先を案内に追加" \
           --body "## 何を変えるか
 
-README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_NO}回（${EVENT_DATE}）の [catchup-$EVENT_ID]($URL) を追加します。
+README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_NO}回（開催日：${EVENT_DATE}）の [catchup-$EVENT_ID]($URL) を追加します。
 
 ## なぜ変えるか
 
@@ -270,6 +280,9 @@ README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_
   step "完了"
   echo "  リポジトリ: $URL"
   echo "  残りの手作業:"
+  if [ "$DATE_KNOWN" = 0 ]; then
+    echo "    - 開催日が決まったら、$URL の README.md と AGENTS.md、community の README.md の表を更新"
+  fi
   echo "    - 開始・終了時刻、参加登録先が決まったら $URL の README.md に追記"
   echo "    - community の PR をレビューしてマージ"
 }

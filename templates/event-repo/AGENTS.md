@@ -1,6 +1,6 @@
 # AI Catchup 第{{EVENT_NO}}回で作業するエージェントへ
 
-ここは `AICatchup/catchup-{{EVENT_ID}}`、{{EVENT_DATE}}の回の公開アーカイブです。参加者本人が共有したい知見・資料の投稿を手伝います。
+ここは `AICatchup/catchup-{{EVENT_ID}}`、第{{EVENT_NO}}回の公開アーカイブです。開催日は{{EVENT_DATE}}です。参加者本人が共有したい知見・資料の投稿を手伝います。
 
 ## 先に読む正本
 
