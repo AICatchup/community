@@ -55,6 +55,27 @@ require_git_identity() {
   fi
 }
 
+# リモートにブランチが1つもなければ空とみなす。
+remote_is_empty() {
+  local refs
+  refs="$(git ls-remote --heads "$URL.git")" || die "$REPO の状態を確認できませんでした。"
+  [ -z "$refs" ]
+}
+
+# $WORK/repo に生成済みのひな形を最初のコミットにして、リモートの main へ push する。
+push_template() {
+  run git -C "$WORK/repo" init -q -b main
+  if [ "$DRY_RUN" = 0 ]; then
+    git -C "$WORK/repo" config user.name "$GIT_NAME"
+    git -C "$WORK/repo" config user.email "$GIT_EMAIL"
+  fi
+  run git -C "$WORK/repo" add -A
+  run git -C "$WORK/repo" commit -q -m "第${EVENT_NO}回の公開アーカイブを用意"
+  # 認証は gh のログイン情報を使う（git 側の資格情報設定に依存しない）。
+  run git -C "$WORK/repo" -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+    push -q "$URL.git" main
+}
+
 # ひな形のプレースホルダーを置換して $1 に書き出す。
 render_template() {
   local out="$1" src rel
@@ -140,25 +161,29 @@ main() {
   # ---- 1. リポジトリ作成とひな形の投入 ----
   step "1/3 $REPO の作成"
   render_template "$WORK/repo"
+  # 作成と push を別々に行う。作成だけ成功して push に失敗した場合も、
+  # 再実行時に空のリポジトリを検出してひな形を投入できる。
+  local need_push=1
   if [ "$exists" = 1 ]; then
-    echo "  すでに存在するため、作成とひな形の投入は行いません（設定だけ適用し直します）。"
-  else
+    if remote_is_empty; then
+      echo "  リポジトリはありますが空のため、ひな形を投入します。"
+    else
+      need_push=0
+      echo "  すでに存在するため、作成とひな形の投入は行いません（設定だけ適用し直します）。"
+    fi
+  fi
+  if [ "$need_push" = 1 ]; then
     if [ "$DRY_RUN" = 1 ]; then
       echo "  生成されるファイル:"
       (cd "$WORK/repo" && find . -type f | sort | sed 's|^\./|    |')
       echo "  README.md の冒頭:"
       sed -n '1,7p' "$WORK/repo/README.md" | sed 's/^/    | /'
     fi
-    run git -C "$WORK/repo" init -q -b main
-    if [ "$DRY_RUN" = 0 ]; then
-      git -C "$WORK/repo" config user.name "$GIT_NAME"
-      git -C "$WORK/repo" config user.email "$GIT_EMAIL"
+    if [ "$exists" = 0 ]; then
+      run gh repo create "$REPO" --public \
+        --description "AI Catchup 第${EVENT_NO}回の発表・活用事例・学びを持ち寄る公開アーカイブ"
     fi
-    run git -C "$WORK/repo" add -A
-    run git -C "$WORK/repo" commit -q -m "第${EVENT_NO}回の公開アーカイブを用意"
-    run gh repo create "$REPO" --public \
-      --description "AI Catchup 第${EVENT_NO}回の発表・活用事例・学びを持ち寄る公開アーカイブ" \
-      --source "$WORK/repo" --remote origin --push
+    push_template
   fi
 
   # ---- 2. 設定の適用（何度実行しても同じ結果になる） ----
