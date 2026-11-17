@@ -1,0 +1,20 @@
+name: 訂正・リンク切れ・質問
+description: 資料の訂正や補足、公開できる質問を送る
+title: "[確認] "
+labels: [correction]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このIssueは公開です。個人情報や非公開の相談は [共通方針の相談先](https://github.com/AICatchup/community/blob/main/POLICY.md) を使ってください。
+  - type: input
+    id: target
+    attributes:
+      label: 対象の資料・投稿のURL
+  - type: textarea
+    id: details
+    attributes:
+      label: 訂正・補足・質問の内容
+      description: 分かれば根拠となるURLや確認日を添えてください。
+    validations:
+      required: true
