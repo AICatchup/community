@@ -5,6 +5,8 @@
 set -euo pipefail
 
 ORG="AICatchup"
+# 各回の CODEOWNERS（templates/event-repo/.github/CODEOWNERS）に書かれている運営チーム。
+TEAM="maintainers"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE="$ROOT/templates/event-repo"
 SETTINGS="$ROOT/settings"
@@ -149,6 +151,8 @@ main() {
   done
   gh auth status >/dev/null 2>&1 || die "GitHub CLI にログインしていません。gh auth login を実行してください。"
   [ -d "$TEMPLATE" ] || die "ひな形が見つかりません: $TEMPLATE"
+  gh api "orgs/$ORG/teams/$TEAM" --silent 2>/dev/null \
+    || die "運営チーム @$ORG/$TEAM が見つかりません。チームを作成するか、Owner 権限のあるアカウントで実行してください。"
   # 何かを作成する前に確認し、作者情報がない環境で途中まで進まないようにする。
   [ "$DRY_RUN" = 1 ] || require_git_identity
 
@@ -192,6 +196,8 @@ main() {
   run gh api --silent -X PUT "repos/$REPO/topics" --input "$SETTINGS/topics.json"
   run gh api --silent -X PUT "repos/$REPO/vulnerability-alerts"
   run gh api --silent -X PUT "repos/$REPO/automated-security-fixes"
+  # CODEOWNERS のチーム指定は、チームにそのリポジトリの書き込み権限がないと無効になる。
+  run gh api --silent -X PUT "orgs/$ORG/teams/$TEAM/repos/$REPO" -f permission=push
   run gh api --silent -X PUT "repos/$REPO/branches/main/protection" --input "$SETTINGS/branch-protection.json"
   local name color desc
   while IFS=$'\t' read -r name color desc; do
@@ -265,7 +271,6 @@ README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_
   echo "  リポジトリ: $URL"
   echo "  残りの手作業:"
   echo "    - 開始・終了時刻、参加登録先が決まったら $URL の README.md に追記"
-  echo "    - 確認担当が変わる回は .github/CODEOWNERS を変更"
   echo "    - community の PR をレビューしてマージ"
 }
 
