@@ -183,16 +183,25 @@ main() {
     patch_docs "$WORKTREE"
     if git -C "$WORKTREE" diff --quiet; then
       echo "  変更がないため PR は作成しません。"
-    elif git -C "$ROOT" ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
-      echo "  ブランチ $BRANCH がすでにあるため PR は作成しません。作成済みの PR を確認してください。"
     else
-      # shellcheck disable=SC2086
-      git -C "$WORKTREE" add $DOCS
-      git -C "$WORKTREE" commit -q -m "第${EVENT_NO}回の投稿先を案内に追加"
-      git -C "$WORKTREE" push -q origin "HEAD:refs/heads/$BRANCH"
-      gh pr create --repo "$ORG/community" --base main --head "$BRANCH" \
-        --title "第${EVENT_NO}回の投稿先を案内に追加" \
-        --body "## 何を変えるか
+      # push は済んだが PR 作成だけ失敗した場合に再実行で続きから進められるよう、
+      # ブランチの有無と PR の有無を別々に確認する。
+      if git -C "$ROOT" ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+        echo "  ブランチ $BRANCH はすでにあるため、push は行いません。"
+      else
+        # shellcheck disable=SC2086
+        git -C "$WORKTREE" add $DOCS
+        git -C "$WORKTREE" commit -q -m "第${EVENT_NO}回の投稿先を案内に追加"
+        git -C "$WORKTREE" push -q origin "HEAD:refs/heads/$BRANCH"
+      fi
+      local pr_url
+      pr_url="$(gh pr list --repo "$ORG/community" --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
+      if [ -n "$pr_url" ]; then
+        echo "  PR は作成済みです: $pr_url"
+      else
+        gh pr create --repo "$ORG/community" --base main --head "$BRANCH" \
+          --title "第${EVENT_NO}回の投稿先を案内に追加" \
+          --body "## 何を変えるか
 
 README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_NO}回（${EVENT_DATE}）の [catchup-$EVENT_ID]($URL) を追加します。
 
@@ -201,6 +210,7 @@ README.md、CONTRIBUTING.md、AGENT_GUIDE.md の投稿先一覧に、第${EVENT_
 第${EVENT_NO}回の公開アーカイブを用意したため、参加者と AI が投稿先をたどれるようにします。
 
 \`scripts/new-event.sh\` が作成した PR です。開催案内のリンクや時間が決まったら追記してください。"
+      fi
     fi
   fi
 

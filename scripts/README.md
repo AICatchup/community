@@ -27,7 +27,7 @@ scripts/new-event.sh 004 "2027年3月10日（水）"
 1. `templates/event-repo/` の回番号と開催日を置き換え、`AICatchup/catchup-NNN` を公開リポジトリとして作成します。
 2. `settings/` の内容を適用します。
    - `repo-settings.json`：Wiki・Projects・Discussions はオフ、マージ後のブランチ削除、Secret scanning と Push protection。
-   - `branch-protection.json`：`main` への変更は PR 必須、承認1件、CODEOWNERS のレビュー、会話の解決が必要。force push と削除は不可。
+   - `branch-protection.json`：`main` への変更は PR 必須、承認1件、CODEOWNERS のレビュー、会話の解決が必要。force push と削除は不可。管理者（Owner）はこの保護の対象外で、これは意図した設定です（`enforce_admins` は `false`）。
    - `topics.json`、`labels.tsv`：トピックと、投稿フォームが使う `submission`・`correction` ラベル。
    - Dependabot のアラートとセキュリティ更新。
 3. このリポジトリの README.md、CONTRIBUTING.md、AGENT_GUIDE.md に新しい回を追記する PR を作成します。
