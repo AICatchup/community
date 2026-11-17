@@ -17,6 +17,7 @@ DRY_RUN=0
 DATE_KNOWN=1
 WORK=""
 WORKTREE=""
+COMMUNITY_HEAD=""
 GIT_NAME=""
 GIT_EMAIL=""
 
@@ -134,6 +135,31 @@ patch_doc() {
   fi
 }
 
+# $1 にある案内文書へ今回の回を追記できるかを、何かを作成する前に確かめる。
+# 回番号の指定ミス（連番を飛ばすなど）や文書の書式の変更に気づかないまま、
+# リポジトリだけが作られて案内の一覧がそろわなくなるのを防ぐ。
+check_docs() {
+  local dir="$1" doc file need ok missing=""
+  local prev_link="[第${PREV_NO}回](https://github.com/$ORG/catchup-$PREV_ID)"
+  for doc in $DOCS; do
+    file="$dir/$doc"
+    if grep -qF "catchup-$EVENT_ID" "$file"; then continue; fi
+    # 文書ごとの追記位置。patch_docs が足す内容（前回へのリンクの後ろ、表の前回の行の下）に対応する。
+    case "$doc" in
+      README.md) need="row" ;;
+      CONTRIBUTING.md) need="link row" ;;
+      *) need="link" ;;
+    esac
+    ok=1
+    case "$need" in *link*) grep -qF "$prev_link" "$file" || ok=0 ;; esac
+    case "$need" in *row*) grep -q "^| 第${PREV_NO}回 |" "$file" || ok=0 ;; esac
+    [ "$ok" = 1 ] || missing="$missing $doc"
+  done
+  if [ -n "$missing" ]; then
+    die "community の案内（${missing# }）に第${PREV_NO}回の記載が見つからず、第${EVENT_NO}回を追記できません。何も作成していません。回番号が正しいか確認してください。第${PREV_NO}回を追加する PR が未マージの場合は、先にマージしてください。"
+  fi
+}
+
 patch_docs() {
   local dir="$1" schedule
   if [ "$DATE_KNOWN" = 1 ]; then
@@ -168,7 +194,7 @@ main() {
   URL="https://github.com/$REPO"
   BRANCH="add-catchup-$EVENT_ID"
 
-  local cmd
+  local cmd doc
   for cmd in gh git awk; do
     command -v "$cmd" >/dev/null 2>&1 || die "$cmd が見つかりません。"
   done
@@ -176,15 +202,25 @@ main() {
   [ -d "$TEMPLATE" ] || die "ひな形が見つかりません: $TEMPLATE"
   # 何かを作成する前に確認し、権限や設定が足りない環境で途中まで進まないようにする。
   # --dry-run は何も変更しないので、Owner でなくても実行できる。
+  WORK="$(mktemp -d)"
+  trap cleanup EXIT
   if [ "$DRY_RUN" = 0 ]; then
     require_org_owner
     require_git_identity
     gh api "orgs/$ORG/teams/$TEAM" --silent 2>/dev/null \
       || die "運営チーム @$ORG/$TEAM が見つかりません。先にチームを作成してください。"
+    # 案内は community の最新の main を元に更新する。追記できるかもその内容で確かめる。
+    git -C "$ROOT" fetch -q "$COMMUNITY_URL" main \
+      || die "$ORG/community の main を取得できませんでした。"
+    COMMUNITY_HEAD="$(git -C "$ROOT" rev-parse FETCH_HEAD)"
+    mkdir -p "$WORK/main-docs"
+    for doc in $DOCS; do
+      git -C "$ROOT" show "$COMMUNITY_HEAD:$doc" > "$WORK/main-docs/$doc"
+    done
+    check_docs "$WORK/main-docs"
+  else
+    check_docs "$ROOT"
   fi
-
-  WORK="$(mktemp -d)"
-  trap cleanup EXIT
 
   local exists=0
   if gh repo view "$REPO" >/dev/null 2>&1; then exists=1; fi
@@ -234,7 +270,6 @@ main() {
 
   # ---- 3. community の案内に新しい回を追加する PR ----
   step "3/3 community の案内を更新"
-  local doc
   if [ "$DRY_RUN" = 1 ]; then
     mkdir -p "$WORK/community"
     for doc in $DOCS; do cp "$ROOT/$doc" "$WORK/community/$doc"; done
@@ -253,9 +288,8 @@ main() {
     fi
   else
     # ローカルにブランチを残さないよう、切り離した作業ツリーで編集して直接 push する。
-    git -C "$ROOT" fetch -q "$COMMUNITY_URL" main
     WORKTREE="$WORK/community"
-    git -C "$ROOT" worktree add -q --detach "$WORKTREE" FETCH_HEAD
+    git -C "$ROOT" worktree add -q --detach "$WORKTREE" "$COMMUNITY_HEAD"
     patch_docs "$WORKTREE"
     if git -C "$WORKTREE" diff --quiet; then
       echo "  変更がないため PR は作成しません。"
