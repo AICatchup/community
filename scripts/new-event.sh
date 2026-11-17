@@ -12,6 +12,8 @@ DOCS="README.md CONTRIBUTING.md AGENT_GUIDE.md"
 DRY_RUN=0
 WORK=""
 WORKTREE=""
+GIT_NAME=""
+GIT_EMAIL=""
 
 die() { printf 'エラー: %s\n' "$*" >&2; exit 1; }
 warn() { printf '注意: %s\n' "$*" >&2; }
@@ -41,6 +43,16 @@ cleanup() {
     git -C "$ROOT" worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true
   fi
   if [ -n "$WORK" ]; then rm -rf "$WORK"; fi
+}
+
+# コミットに使う作者情報を、このクローンの設定（なければグローバル設定）から取得する。
+# 一時リポジトリはこのクローンのローカル設定を引き継がないため、明示的に渡す。
+require_git_identity() {
+  GIT_NAME="$(git -C "$ROOT" config user.name || true)"
+  GIT_EMAIL="$(git -C "$ROOT" config user.email || true)"
+  if [ -z "$GIT_NAME" ] || [ -z "$GIT_EMAIL" ]; then
+    die "Git の作者情報が未設定です。git config --global user.name と user.email を設定してから再実行してください。"
+  fi
 }
 
 # ひな形のプレースホルダーを置換して $1 に書き出す。
@@ -116,6 +128,8 @@ main() {
   done
   gh auth status >/dev/null 2>&1 || die "GitHub CLI にログインしていません。gh auth login を実行してください。"
   [ -d "$TEMPLATE" ] || die "ひな形が見つかりません: $TEMPLATE"
+  # 何かを作成する前に確認し、作者情報がない環境で途中まで進まないようにする。
+  [ "$DRY_RUN" = 1 ] || require_git_identity
 
   WORK="$(mktemp -d)"
   trap cleanup EXIT
@@ -136,6 +150,10 @@ main() {
       sed -n '1,7p' "$WORK/repo/README.md" | sed 's/^/    | /'
     fi
     run git -C "$WORK/repo" init -q -b main
+    if [ "$DRY_RUN" = 0 ]; then
+      git -C "$WORK/repo" config user.name "$GIT_NAME"
+      git -C "$WORK/repo" config user.email "$GIT_EMAIL"
+    fi
     run git -C "$WORK/repo" add -A
     run git -C "$WORK/repo" commit -q -m "第${EVENT_NO}回の公開アーカイブを用意"
     run gh repo create "$REPO" --public \
