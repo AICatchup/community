@@ -4,7 +4,7 @@
 
 ## 投稿先と方法を決める
 
-- [第1回](https://github.com/AICatchup/catchup-001)、[第2回](https://github.com/AICatchup/catchup-002)、[第3回](https://github.com/AICatchup/catchup-003)のうち、本人が指定した回を使います。判断できなければ回を一度確認します。
+- [第1回](https://github.com/AICatchup/catchup-001)、[第2回](https://github.com/AICatchup/catchup-002)、[第3回](https://github.com/AICatchup/catchup-003)、[第4回](https://github.com/AICatchup/catchup-004)のうち、本人が指定した回を使います。判断できなければ回を一度確認します。
 - 通常は共有Issueを1件作ります。PRを希望されたら、記録を追加するPRを作ります。IssueとPRを別々の新規投稿として二重に送らないでください。
 - 既存の記録・Issue・PRで同じ作者・資料URLを確認し、追記なら既存の投稿へつなぎます。権限がなく編集できない場合は、既存URLを示した訂正・追記案にします。
 

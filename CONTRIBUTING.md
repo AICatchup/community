@@ -2,13 +2,14 @@
 
 スライド、記事、リポジトリ、デモのURLと、「何をしたか」の一言から投稿できます。「私はこう使った」「ここで困った」「まだ分からない」も歓迎します。発表していなくても、開催後でも投稿できます。
 
-投稿先は [第1回](https://github.com/AICatchup/catchup-001)、[第2回](https://github.com/AICatchup/catchup-002)、[第3回](https://github.com/AICatchup/catchup-003) のいずれかです。関連する回を選んでください。
+投稿先は [第1回](https://github.com/AICatchup/catchup-001)、[第2回](https://github.com/AICatchup/catchup-002)、[第3回](https://github.com/AICatchup/catchup-003)、[第4回](https://github.com/AICatchup/catchup-004) のいずれかです。関連する回を選んでください。
 
 | 回 | 知見・資料の投稿先 |
 | --- | --- |
 | 第1回 | [共有フォーム](https://github.com/AICatchup/catchup-001/issues/new?template=share.yml) |
 | 第2回 | [共有フォーム](https://github.com/AICatchup/catchup-002/issues/new?template=share.yml) / [参加者の入口・AIへ渡す依頼文](https://github.com/AICatchup/catchup-002/blob/main/PARTICIPATE.md) |
 | 第3回 | [共有フォーム](https://github.com/AICatchup/catchup-003/issues/new?template=share.yml) |
+| 第4回 | [共有フォーム](https://github.com/AICatchup/catchup-004/issues/new?template=share.yml) |
 
 閲覧はGitHubアカウントなしでできます。投稿にはアカウントが必要で、Issue・PRは送信時から公開されます。AIに手伝ってもらう場合は[エージェント向けの手順](AGENT_GUIDE.md)を渡してください。
 

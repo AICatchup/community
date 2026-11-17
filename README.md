@@ -30,6 +30,7 @@ CodexやOpenAIを軸に、新機能、普段の使い方、作ったもの、試
 | 第1回 | 2026年10月3日 / [Codex Catchup #1](https://luma.com/39cmcrue) | [catchup-001](https://github.com/AICatchup/catchup-001) |
 | 第2回 | 2026年11月7日 / [Codex Catchup #2](https://luma.com/h7gn1d01) | [catchup-002](https://github.com/AICatchup/catchup-002) |
 | 第3回 | 2026年12月9日（水） / 時間・参加登録先は後日案内 | [catchup-003](https://github.com/AICatchup/catchup-003) |
+| 第4回 | 開催日・時間・参加登録先は後日案内 | [catchup-004](https://github.com/AICatchup/catchup-004) |
 
 スライド、記事、コード、デモが別の場所にあっても、URLと一言から投稿できます。発表していない人の「私はこう使った」「ここで困った」も歓迎します。PRに慣れていなければ、各回の投稿フォームを使ってください。
 
