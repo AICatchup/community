@@ -7,6 +7,8 @@ set -euo pipefail
 ORG="AICatchup"
 # 各回の CODEOWNERS（templates/event-repo/.github/CODEOWNERS）に書かれている運営チーム。
 TEAM="maintainers"
+# 案内の更新は、このクローンのリモート設定（origin の名前や向き先）に頼らず、正規の URL に対して行う。
+COMMUNITY_URL="https://github.com/$ORG/community.git"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE="$ROOT/templates/event-repo"
 SETTINGS="$ROOT/settings"
@@ -251,22 +253,23 @@ main() {
     fi
   else
     # ローカルにブランチを残さないよう、切り離した作業ツリーで編集して直接 push する。
-    git -C "$ROOT" fetch -q origin main
+    git -C "$ROOT" fetch -q "$COMMUNITY_URL" main
     WORKTREE="$WORK/community"
-    git -C "$ROOT" worktree add -q --detach "$WORKTREE" origin/main
+    git -C "$ROOT" worktree add -q --detach "$WORKTREE" FETCH_HEAD
     patch_docs "$WORKTREE"
     if git -C "$WORKTREE" diff --quiet; then
       echo "  変更がないため PR は作成しません。"
     else
       # push は済んだが PR 作成だけ失敗した場合に再実行で続きから進められるよう、
       # ブランチの有無と PR の有無を別々に確認する。
-      if git -C "$ROOT" ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+      if git ls-remote --exit-code --heads "$COMMUNITY_URL" "$BRANCH" >/dev/null 2>&1; then
         echo "  ブランチ $BRANCH はすでにあるため、push は行いません。"
       else
         # shellcheck disable=SC2086
         git -C "$WORKTREE" add $DOCS
         git -C "$WORKTREE" commit -q -m "第${EVENT_NO}回の投稿先を案内に追加"
-        git -C "$WORKTREE" push -q origin "HEAD:refs/heads/$BRANCH"
+        git -C "$WORKTREE" -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+          push -q "$COMMUNITY_URL" "HEAD:refs/heads/$BRANCH"
       fi
       local pr_url
       pr_url="$(gh pr list --repo "$ORG/community" --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
