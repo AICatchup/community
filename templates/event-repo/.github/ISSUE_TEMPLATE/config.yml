@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 共通方針の提案・相談
+    url: https://github.com/AICatchup/community/issues/new?template=proposal.yml
+    about: 各回共通のビジョンや仕組みへの提案はこちら
+  - name: 公開できない相談の連絡方法
+    url: https://github.com/AICatchup/community/blob/main/POLICY.md
+    about: 個人情報や非公開の相談をIssueへ書く前に確認してください

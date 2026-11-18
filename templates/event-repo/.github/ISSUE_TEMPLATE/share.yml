@@ -1,0 +1,52 @@
+name: 資料・活用事例を投稿する
+description: 発表、作品、私はこう使った、試して分かったことを持ち寄る
+title: "[共有] "
+labels: [submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        URLと一言から投稿できます。このIssueは送信時点で公開されます。運営が確認し、原典と作者を残してアーカイブへの取り込みを進めます。[投稿方法と公開の扱い](https://github.com/AICatchup/community/blob/main/CONTRIBUTING.md)
+  - type: input
+    id: author
+    attributes:
+      label: 公開する作者名
+      description: ハンドルネームで構いません。紹介の場合は元の作者を記入してください。
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 内容の種類
+      options:
+        - 発表・LT
+        - 活用事例
+        - 作品・デモ
+        - 試した記録
+        - 質問・まだ分からないこと
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 何をしたか・伝えたいこと
+      description: 短いメモでも大丈夫です。資料がなければ、ここに本文を書けます。
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: 資料・コード・デモ・作者のURL
+      description: 公開してよいURLのみ。利用条件がある場合は、そのリンクもどうぞ。
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 試した日・環境・結果・未確認のこと
+      description: 分かる範囲で構いません。まだ試していない内容は、その旨を書いてください。
+  - type: checkboxes
+    id: publication
+    attributes:
+      label: 公開の確認
+      options:
+        - label: 公開する権利のある内容を投稿し、作者・原典を示してこの公開アーカイブへ掲載・紹介されることに同意します。個人情報や秘密を含めていません。
+          required: true
