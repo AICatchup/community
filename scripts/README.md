@@ -6,7 +6,7 @@
 
 - [GitHub CLI](https://cli.github.com/)（`gh auth login` 済み）と Git、bash。Windows では Git Bash で実行します。
 - AICatchup の Owner 権限。Owner 以外が実行すると、何も作成せずに止まります。`--dry-run` は誰でも実行できます。
-- このリポジトリのクローン。
+- このリポジトリのクローン。`main` を最新にした状態で実行します。ひな形・設定・スクリプトが `main` と違う場合は、何も作成せずに止まります（`--dry-run` は実行できます）。
 
 ## 使い方
 

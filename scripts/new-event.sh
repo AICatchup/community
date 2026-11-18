@@ -73,6 +73,17 @@ require_git_identity() {
   fi
 }
 
+# ひな形・設定・スクリプトは手元のファイルを使う。取得した main と違っていると、
+# 古いクローンや未マージの変更から新しい回を作ってしまうため、何かを作成する前に止める。
+require_current_sources() {
+  local paths="templates/event-repo settings scripts"
+  # shellcheck disable=SC2086
+  if [ -n "$(git -C "$ROOT" status --porcelain -- $paths)" ] \
+    || ! git -C "$ROOT" diff --quiet "$COMMUNITY_HEAD" -- $paths; then
+    die "手元のひな形・設定・スクリプトが $ORG/community の main と一致しません。main を最新にして、未コミットの変更がない状態で再実行してください。内容の確認だけなら --dry-run を付けてください。"
+  fi
+}
+
 # リモートにブランチが1つもなければ空とみなす。
 remote_is_empty() {
   local refs
@@ -213,6 +224,7 @@ main() {
     git -C "$ROOT" fetch -q "$COMMUNITY_URL" main \
       || die "$ORG/community の main を取得できませんでした。"
     COMMUNITY_HEAD="$(git -C "$ROOT" rev-parse FETCH_HEAD)"
+    require_current_sources
     mkdir -p "$WORK/main-docs"
     for doc in $DOCS; do
       git -C "$ROOT" show "$COMMUNITY_HEAD:$doc" > "$WORK/main-docs/$doc"
